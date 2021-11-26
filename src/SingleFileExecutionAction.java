@@ -19,6 +19,15 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
+import net.sourceforge.pinyin4j.PinyinHelper;
+import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
+import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
+import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
+
+import java.io.UnsupportedEncodingException;
+
 /**
  *
  */
@@ -204,11 +213,44 @@ public class SingleFileExecutionAction extends AnAction {
         return "set_target_properties(" + exeName + " PROPERTIES RUNTIME_OUTPUT_DIRECTORY " + outputDir + ")";
     }
 
+    /**
+     * 获取汉字串拼音，英文字符不变
+     *
+     * @param chinese 汉字串
+     * @return 汉语拼音
+     */
+    public static String cn2Spell(String chinese) {
+        StringBuffer pybf = new StringBuffer();
+        char[] arr = chinese.toCharArray();
+        HanyuPinyinOutputFormat defaultFormat = new HanyuPinyinOutputFormat();
+        defaultFormat.setCaseType(HanyuPinyinCaseType.LOWERCASE);
+        defaultFormat.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
+        for (char c : arr) {
+            if (c > 128) {
+                try {
+                    pybf.append(PinyinHelper.toHanyuPinyinStringArray(c, defaultFormat)[0]);
+                } catch (BadHanyuPinyinOutputFormatCombination e) {
+                    e.printStackTrace();
+                }
+            } else {
+                pybf.append(c);
+            }
+        }
+        return pybf.toString();
+    }
+
     /** build target exeName according based on the configuration */
     private String buildExeName(String exeName) {
         String newExeName;
-        /* %FILENAME% replacement */
-        newExeName = exeName.replace(SingleFileExecutionConfig.EXECUTABLE_NAME_FILENAME, sourceFile.getNameWithoutExtension());
+
+        /* %FILENAME% %SAFEFILENAME% replacement */
+        String fileName = sourceFile.getNameWithoutExtension();
+        /* 将汉字转化为拼音, 清除所有符号, 只留下字母、数字、汉字3类 */
+        String safeFileName = cn2Spell(fileName).replaceAll("[\\pP\\p{Punct}]","");
+
+        newExeName = exeName.replace(SingleFileExecutionConfig.EXECUTABLE_NAME_FILENAME, fileName )
+                .replace(SingleFileExecutionConfig.EXECUTABLE_NAME_SAFEFILENAME, safeFileName);
+
         return newExeName;
     }
 

@@ -20,6 +20,7 @@ public class SingleFileExecutionConfig implements PersistentStateComponent<Singl
     /* NOTE: member should be "public" to be saved in xml */
     /* add_executable(): exe name */
     static final String EXECUTABLE_NAME_FILENAME = "%FILENAME%";
+    static final String EXECUTABLE_NAME_SAFEFILENAME = "%SAFEFILENAME%";
     public static final String DEFAULT_EXECUTABLE_NAME = EXECUTABLE_NAME_FILENAME;
     public String executableName = DEFAULT_EXECUTABLE_NAME;  // persistent member should be public
     /* set_target_properties(): runtime output directory */
